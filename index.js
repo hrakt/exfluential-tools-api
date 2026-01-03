@@ -1,16 +1,25 @@
 const express = require('express');
 const app = express();
 
+const { db, initDb } = require('./db');
+const { tools } = require('./schema');
+const { eq } = require('drizzle-orm');
+
 app.use(express.json());
 
-let tools = [];
-let nextId = 1;
 
-app.get('/tools', (req, res) => {
-    res.status(200).json(tools);
+
+app.get('/tools', async (req, res) => {
+    try {
+        const rows = await db.select().from(tools);
+        res.status(200).json(rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to fetch tools' });
+    }
 })
 
-app.post('/tools', (req, res) => {
+app.post('/tools', async (req, res) => {
     const { name, type } = req.body;
 
     const allowedTypes = ['calculator', 'guide', 'form'];
@@ -23,30 +32,47 @@ app.post('/tools', (req, res) => {
         return res.status(400).json({ error: `type must be onf othe: ${allowedTypes.join(', ')}` })
     }
 
-    const newTool = {
-        id: nextId++,
-        name,
-        type,
-        active: true
+    try {
+        const [newTool] = await db.insert(tools).values({ name, type, active: true }).returning();
+        res.status(201).json(newTool)
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to create a too' })
     }
-
-    tools.push(newTool);
-    res.status(201).json(newTool);
 });
 
-app.patch('/tools/:id/toggle', (req, res) => {
+app.patch('/tools/:id/toggle', async (req, res) => {
     const id = Number(req.params.id);
-    const tool = tools.find(t => t.id === id);
 
-    if (!tool) {
-        res.status(400).json({ error: "No tool found with this id" })
+
+    try {
+        const [tool] = await db.select().from(tools).where(eq(tools.id, id));
+
+        if (!tool) {
+            return res.status(404).json({ error: `Tool ${id} not found` });
+        }
+        const newActive = !tool.active;
+
+        const [updated] = await db.update(tools).set({ active: newActive }).where(eq(tools.id, id)).returning();
+        res.status(200).json(updated);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to toggle tool' })
     }
-    tool.active = !tool.active
-
-    res.status(200).json(tool)
 })
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Server listening on port ${PORT}`)
-})
+async function start() {
+    try {
+        await initDb();
+        console.log('DB ready')
+
+        app.listen(PORT, () => {
+            console.log(`Server listening on port ${PORT}`);
+        });
+    } catch (err) {
+        console.error('Failed to start server:', err);
+    }
+}
+
+start();
