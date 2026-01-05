@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 
 const { db, initDb } = require('./db');
-const { tools } = require('./schema');
+const { tools, jobs } = require('./schema');
 const { eq } = require('drizzle-orm');
 
 app.use(express.json());
@@ -44,7 +44,6 @@ app.post('/tools', async (req, res) => {
 app.patch('/tools/:id/toggle', async (req, res) => {
     const id = Number(req.params.id);
 
-
     try {
         const [tool] = await db.select().from(tools).where(eq(tools.id, id));
 
@@ -58,6 +57,67 @@ app.patch('/tools/:id/toggle', async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Failed to toggle tool' })
+    }
+})
+
+app.post('/tools/:id/sync', async (req, res) => {
+    const id = Number(req.params.id);
+
+    if (Number.isNaN(id)) {
+        return res.status(400).json({ error: 'id must be anumber' })
+    }
+
+    try {
+        const [tool] = await db.select().from(tools).where(eq(tools.id, id));
+        if (!tool) {
+            return res.status(404).json({ error: `Tool ${id} not found` })
+        }
+
+        const [job] = await db.insert(jobs).values({ toolId: id, type: 'sync-tool', status: 'queued' }).returning();
+
+        res.status(202).json({ message: 'Sync job queued', job });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to queue async job' })
+    }
+});
+
+app.get('/jobs', async (req, res) => {
+    try {
+        const rows = await db.select().from(jobs);
+        res.status(200).json(rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to fetch jobs' });
+    }
+})
+
+app.post('/jobs/:id/process', async (req, res) => {
+    const id = Number(req.params.id);
+    if (Number.isNaN(id)) {
+        return res.status(400).json({ error: 'id must be a number' })
+    }
+    try {
+        const [job] = await db.select().from(jobs).where(eq(jobs.id, id));
+        if (!job) {
+            return res.status(404).json({ error: `Job ${id} not found` })
+        }
+
+        await db.update(jobs).set({ status: 'processing' }).where(eq(jobs.id, id));
+        setTimeout(async () => {
+            try {
+                const [updated] = await db.update(jobs).set({ status: 'completed' }).where(eq(jobs.id, id)).returning();
+                if (!res.headersSent) {
+                    res.status(200).json(updated);
+                }
+            } catch (err) {
+                if (!res.headersSent) {
+                    res.status(500).json({ error: 'failed to complete my job' });
+                }
+            }
+        }, 2000)
+    } catch (err) {
+        console.error('Failed to update job')
     }
 })
 

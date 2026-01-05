@@ -1,4 +1,4 @@
-const { pgTable, serial, text, boolean, timestamp } = require('drizzle-orm/pg-core');
+const { pgTable, serial, text, boolean, timestamp, integer } = require('drizzle-orm/pg-core');
 
 const tools = pgTable('tools', {
     id: serial('id').primaryKey(),
@@ -9,4 +9,14 @@ const tools = pgTable('tools', {
     updatedAt: timestamp('updatedAt', { withTimezone: true }).defaultNow(),
 });
 
-module.exports = { tools };
+
+const jobs = pgTable('jobs', {
+    id: serial('id').primaryKey(),
+    toolId: integer('toolId').notNull(),
+    type: text('type').notNull(),
+    status: text('status').notNull().default('queued'),
+    createdAt: timestamp('createdAt', { withTimezone: true }).defaultNow(),
+    updatedAt: timestamp('updatedAt', { withTimezone: true }).defaultNow(),
+});
+
+module.exports = { tools, jobs };
