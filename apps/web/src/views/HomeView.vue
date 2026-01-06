@@ -15,7 +15,7 @@ const isSubmitting = ref(false);
 const message = ref<string | null>(null);
 const error = ref<string | null>(null);
 
-const API_BASE = 'http://localhost:3000'; // backend
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
 
 async function createTool() {
   isSubmitting.value = true;
