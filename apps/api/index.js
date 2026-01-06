@@ -6,8 +6,6 @@ const { db, initDb } = require('./db');
 const { tools, jobs } = require('./schema');
 const { eq } = require('drizzle-orm');
 
-const cors = require('cors');
-
 app.use(cors());
 app.options('*', cors());
 app.use(express.json());
