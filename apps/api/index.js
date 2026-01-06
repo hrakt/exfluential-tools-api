@@ -1,10 +1,12 @@
 const express = require('express');
 const app = express();
+const cors = require('cors');
 
 const { db, initDb } = require('./db');
 const { tools, jobs } = require('./schema');
 const { eq } = require('drizzle-orm');
 
+app.use(cors({ origin: 'http://localhost:5173' }));
 app.use(express.json());
 
 

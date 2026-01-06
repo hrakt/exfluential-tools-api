@@ -1,24 +1,12 @@
 {
-  "name": "exfluential-tools-api",
+  "name": "exfluential-tools",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "dependencies": {
-    "dotenv": "^17.2.3",
-    "drizzle-orm": "^0.45.1",
-    "express": "^5.2.1",
-    "pg": "^8.16.3"
-  },
-  "devDependencies": {
-    "drizzle-kit": "^0.31.8",
-    "nodemon": "^3.1.11"
+    "dev:api": "npm run dev -w apps/api",
+    "start:api": "npm run start -w apps/api"
   }
 }
