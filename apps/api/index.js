@@ -6,26 +6,10 @@ const { db, initDb } = require('./db');
 const { tools, jobs } = require('./schema');
 const { eq } = require('drizzle-orm');
 
-const allowedOrigins = [
-    'http://localhost:5173',
-    'exfluential-tools-api-web.vercel.app'
-];
+const cors = require('cors');
 
-app.use(
-    cors({
-        origin: (origin, callback) => {
-            // allow tools like Postman (no origin)
-            if (!origin) return callback(null, true);
-
-            if (allowedOrigins.includes(origin)) {
-                return callback(null, true);
-            }
-
-            return callback(new Error('Not allowed by CORS'));
-        },
-        credentials: true,
-    })
-);
+app.use(cors());
+app.options('*', cors());
 app.use(express.json());
 
 

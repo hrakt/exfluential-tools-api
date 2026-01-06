@@ -4,7 +4,7 @@ const { drizzle } = require('drizzle-orm/node-postgres');
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: {
+  ssl: process.env.K_SERVICE ? false : {
     rejectUnauthorized: false,
   },
 })
