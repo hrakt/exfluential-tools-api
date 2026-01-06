@@ -1,0 +1,10 @@
+{
+  "name": "exfluential-tools-web",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "echo \"Add frontend dev script\"",
+    "build": "echo \"Add frontend build script\"",
+    "start": "echo \"Add frontend start script\""
+  }
+}
