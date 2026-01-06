@@ -7,10 +7,9 @@ const { tools, jobs } = require('./schema');
 const { eq } = require('drizzle-orm');
 
 app.use(cors());
-app.options('*', cors());
 app.use(express.json());
 
-
+app.use('/requests', require('./routes/requests'));
 
 app.get('/tools', async (req, res) => {
     try {

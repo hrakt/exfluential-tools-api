@@ -19,4 +19,18 @@ const jobs = pgTable('jobs', {
     updatedAt: timestamp('updatedAt', { withTimezone: true }).defaultNow(),
 });
 
-module.exports = { tools, jobs };
+const requests = pgTable('requests', {
+    id: serial('id').primaryKey(),
+    doctorName: text('doctor_name').notNull(),
+    practiceName: text('practice_name').notNull(),
+    practiceType: text('practice_type').notNull(),
+    channel: text('channel').notNull(),
+    primaryMessage: text('primary_message').notNull(),
+    status: text('status').notNull().default('pending'),
+    assetUrl: text('asset_url'),
+    errorMessage: text('error_message'),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
+});
+
+module.exports = { tools, jobs, requests };

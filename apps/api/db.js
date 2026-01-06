@@ -2,38 +2,73 @@ require('dotenv').config();
 const { Pool } = require('pg');
 const { drizzle } = require('drizzle-orm/node-postgres');
 
+const connectionString = process.env.DATABASE_URL;
+// Log the connection string with password masked for debugging
+if (connectionString) {
+  const masked = connectionString.replace(/:([^:@]+)@/, ':***@');
+  console.log(`Connecting to: ${masked} (K_SERVICE: ${process.env.K_SERVICE})`);
+}
+
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.K_SERVICE ? false : {
+  connectionString,
+  ssl: process.env.K_SERVICE ? undefined : {
     rejectUnauthorized: false,
   },
+})
+
+pool.on('error', (err) => {
+  console.error('Unexpected error on idle client', err)
+  process.exit(-1)
 })
 
 const db = drizzle(pool);
 
 async function initDb() {
-  // one-time table creation; in a real app you'd use migrations
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS tools (
+  console.log('Initializing DB...');
+  try {
+    // one-time table creation; in a real app you'd use migrations
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS tools (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL,
+        type TEXT NOT NULL,
+        active BOOLEAN NOT NULL DEFAULT TRUE,
+        "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+    `);
+
+    await pool.query(`
+    CREATE TABLE IF NOT EXISTS jobs (
       id SERIAL PRIMARY KEY,
-      name TEXT NOT NULL,
+      "toolId" INTEGER NOT NULL,
       type TEXT NOT NULL,
-      active BOOLEAN NOT NULL DEFAULT TRUE,
-      "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-      "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      status TEXT NOT NULL DEFAULT 'queued',
+      "createdAt" TIMESTAMPTZ DEFAULT NOW(),
+      "updatedAt" TIMESTAMPTZ DEFAULT NOW()
     );
   `);
 
-  await pool.query(`
-  CREATE TABLE IF NOT EXISTS jobs (
-    id SERIAL PRIMARY KEY,
-    "toolId" INTEGER NOT NULL,
-    type TEXT NOT NULL,
-    status TEXT NOT NULL DEFAULT 'queued',
-    "createdAt" TIMESTAMPTZ DEFAULT NOW(),
-    "updatedAt" TIMESTAMPTZ DEFAULT NOW()
-  );
-`);
+    await pool.query(`
+    CREATE TABLE IF NOT EXISTS requests (
+      id SERIAL PRIMARY KEY,
+      doctor_name TEXT NOT NULL,
+      practice_name TEXT NOT NULL,
+      practice_type TEXT NOT NULL,
+      channel TEXT NOT NULL,
+      primary_message TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'pending',
+      asset_url TEXT,
+      error_message TEXT,
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    );
+  `);
+    console.log('Tables created or already exist.');
+  } catch (err) {
+    console.error('Error in initDb:', err);
+    throw err;
+  }
 }
 
 module.exports = {
