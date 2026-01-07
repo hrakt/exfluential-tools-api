@@ -11,7 +11,9 @@ if (connectionString) {
 
 const pool = new Pool({
   connectionString,
-  ssl: process.env.K_SERVICE ? undefined : {
+  // Enable SSL for remote databases (required for Google Cloud SQL and most cloud providers)
+  // Set SSL_MODE=false in .env to disable SSL for local development
+  ssl: process.env.SSL_MODE === 'false' ? false : {
     rejectUnauthorized: false,
   },
 })
