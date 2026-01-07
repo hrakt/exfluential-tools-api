@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const { db } = require('../db');
-const { requests } = require('../schema');
+const { db } = require('../db/db');
+const { requests } = require('../db/schema');
 const { eq } = require('drizzle-orm');
-const { generateAssetFromRequest } = require('../aiService');
+const { generateAssetFromRequest } = require('../services/aiService');
 
 // Helper for async processing
 async function processRequest(requestId) {

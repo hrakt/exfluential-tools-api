@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { db } = require('../db');
-const { jobs } = require('../schema');
+const { db } = require('../db/db');
+const { jobs } = require('../db/schema');
 const { eq } = require('drizzle-orm');
 
 router.get('/', async (req, res) => {
