@@ -15,6 +15,11 @@ const router = createRouter({
       name: 'requests',
       component: RequestAssetView,
     },
+    {
+      path: '/history',
+      name: 'history',
+      component: () => import('../views/RequestsHistoryView.vue'),
+    },
   ],
 })
 

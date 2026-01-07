@@ -101,7 +101,10 @@ onUnmounted(() => {
       
       <div class="mb-6 flex items-center justify-between">
         <h1 class="text-2xl font-semibold">Request Marketing Asset</h1>
-        <RouterLink to="/" class="text-sm text-emerald-500 hover:text-emerald-400">Back to Home</RouterLink>
+        <div class="flex gap-3 text-sm">
+             <RouterLink to="/history" class="text-slate-400 hover:text-white">History</RouterLink>
+             <RouterLink to="/" class="text-emerald-500 hover:text-emerald-400">Back to Home</RouterLink>
+        </div>
       </div>
 
       <form v-if="status === 'idle' || status === 'submitting' || status === 'failed'" @submit.prevent="submitRequest" class="space-y-4">

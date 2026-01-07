@@ -58,9 +58,14 @@ async function createTool() {
     <div class="w-full max-w-md p-6 bg-slate-900/80 rounded-xl shadow-lg border border-slate-800">
       <div class="flex justify-between items-center mb-1">
         <h1 class="text-2xl font-semibold">Create Tool</h1>
-        <RouterLink to="/requests" class="text-xs font-medium bg-emerald-500/10 text-emerald-400 px-2 py-1 rounded border border-emerald-500/20 hover:bg-emerald-500/20 transition">
-          New: AI Request →
-        </RouterLink>
+        <div class="flex gap-2">
+            <RouterLink to="/history" class="text-xs font-medium bg-slate-800 text-slate-300 px-2 py-1 rounded border border-slate-700 hover:bg-slate-700 transition">
+              History
+            </RouterLink>
+            <RouterLink to="/requests" class="text-xs font-medium bg-emerald-500/10 text-emerald-400 px-2 py-1 rounded border border-emerald-500/20 hover:bg-emerald-500/20 transition">
+            New: AI Request →
+            </RouterLink>
+        </div>
       </div>
       <p class="text-sm text-slate-300 mb-6">
         Fill out the form to create a new tool in the backend (Node + Postgres).
