@@ -91,8 +91,8 @@ router.post('/', async (req, res) => {
 
 router.get('/all', async (req, res) => {
     try {
-        const requests = await db.select().from(requests);
-        res.json(requests);
+        const allRequests = await db.select().from(requests);
+        res.json(allRequests);
     } catch (err) {
         console.error('Failed to fetch requests:', err);
         res.status(500).json({ error: 'Internal Server Error' });
