@@ -1,45 +1,39 @@
-const { GoogleGenerativeAI } = require("@google/generative-ai");
-
 async function generateAssetFromRequest(request) {
-    const apiKey = process.env.GOOGLE_GENAI_API_KEY;
-    
-    if (!apiKey) {
-        console.error("[AI Service] Error: GOOGLE_GENAI_API_KEY is not set.");
-        return `[Simulation Mode] Marketing asset for ${request.practiceName}: "Visit Dr. ${request.doctorName} for the best ${request.practiceType} services! ${request.primaryMessage}"`;
-    }
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 500));
 
-    const genAI = new GoogleGenerativeAI(apiKey);
+    // Return simulated marketing asset based on channel type
+    if (request.channel === 'email') {
+        return `SUBJECT LINE: Transform Your Health at ${request.practiceName}
 
-    try {
-        // Using 'gemini-1.5-flash-latest' which is often more reliable than the base name
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+EMAIL BODY:
+Dear Friend,
 
-        console.log(`[AI Service] Calling Gemini (1.5-flash-latest) for request ${request.id}...`);
+Experience exceptional ${request.practiceType} care under the expert guidance of Dr. ${request.doctorName}.
 
-        const prompt = `
-            You are a professional marketing copywriter. 
-            Create a short, catchy marketing asset for a ${request.channel} campaign.
-            
-            Context:
-            - Practice Name: ${request.practiceName}
-            - Doctor: Dr. ${request.doctorName}
-            - Practice Type: ${request.practiceType}
-            - Primary Message: ${request.primaryMessage}
-            
-            Format:
-            If 'social' or 'poster': [HEADLINE], [BODY COPY], [VISUAL SUGGESTION].
-            If 'email': [SUBJECT LINE], [EMAIL BODY].
-        `;
+${request.primaryMessage}
 
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        return response.text();
+At ${request.practiceName}, we're committed to your wellness journey.
 
-    } catch (error) {
-        console.error("[AI Service] Error calling Google AI:", error);
-        
-        // If 1.5-flash fails again, we might want to try gemini-2.0-flash-001 from your snippets
-        throw new Error(`AI Generation failed: ${error.message}`);
+Schedule your consultation today!
+
+Best regards,
+${request.practiceName} Team`;
+    } else if (request.channel === 'social' || request.channel === 'poster') {
+        return `HEADLINE: Your Health, Our Priority - ${request.practiceName}
+
+BODY COPY: Discover premium ${request.practiceType} care with Dr. ${request.doctorName}. ${request.primaryMessage} Join hundreds of satisfied patients!
+
+VISUAL SUGGESTION: Use a professional medical setting background with warm, welcoming colors. Include imagery of Dr. ${request.doctorName} in a clinical environment and happy patients. Add your practice logo prominently.`;
+    } else {
+        return `Marketing Asset for ${request.channel} Channel:
+
+Practice: ${request.practiceName}
+Doctor: Dr. ${request.doctorName}
+Type: ${request.practiceType}
+Message: ${request.primaryMessage}
+
+This is a simulated marketing asset. Customize based on your campaign needs.`;
     }
 }
 

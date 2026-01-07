@@ -152,7 +152,7 @@ onUnmounted(() => {
         <div class="bg-emerald-900/30 border border-emerald-500/30 p-4 rounded text-center">
           <h2 class="text-lg font-semibold text-emerald-400 mb-2">Asset Ready!</h2>
           
-          <div v-if="assetUrl && assetUrl.startsWith('http')" class="mt-4">
+          <div v-if="assetUrl && (assetUrl.startsWith('http') || assetUrl.startsWith('data:image'))" class="mt-4">
             <img :src="assetUrl" alt="Generated Asset" class="max-w-full rounded shadow-lg mx-auto" />
           </div>
           <div v-else class="mt-4 p-4 bg-slate-800 rounded text-left font-mono text-sm whitespace-pre-wrap">
