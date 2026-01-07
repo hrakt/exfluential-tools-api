@@ -1,42 +1,50 @@
+const { exec } = require('child_process');
+
 async function generateAssetFromRequest(request) {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    // Return simulated marketing asset based on channel type
-    if (request.channel === 'email') {
-        return `SUBJECT LINE: Transform Your Health at ${request.practiceName}
-
-EMAIL BODY:
-Dear Friend,
-
-Experience exceptional ${request.practiceType} care under the expert guidance of Dr. ${request.doctorName}.
-
-${request.primaryMessage}
-
-At ${request.practiceName}, we're committed to your wellness journey.
-
-Schedule your consultation today!
-
-Best regards,
-${request.practiceName} Team`;
-    } else if (request.channel === 'social' || request.channel === 'poster') {
-        return `HEADLINE: Your Health, Our Priority - ${request.practiceName}
-
-BODY COPY: Discover premium ${request.practiceType} care with Dr. ${request.doctorName}. ${request.primaryMessage} Join hundreds of satisfied patients!
-
-VISUAL SUGGESTION: Use a professional medical setting background with warm, welcoming colors. Include imagery of Dr. ${request.doctorName} in a clinical environment and happy patients. Add your practice logo prominently.`;
-    } else {
-        return `Marketing Asset for ${request.channel} Channel:
-
-Practice: ${request.practiceName}
-Doctor: Dr. ${request.doctorName}
-Type: ${request.practiceType}
-Message: ${request.primaryMessage}
-
-This is a simulated marketing asset. Customize based on your campaign needs.`;
+    const apiKey = process.env.DASHSCOPE_API_KEY;
+    if (!apiKey) {
+        throw new Error("Missing DASHSCOPE_API_KEY in environment variables.");
     }
+
+    const promptText = `An image of a doctor with patient and a dental practice, featuring European or American looking people, ` +
+        `with a readable headline text at the top of the image. ${request.primaryMessage || ""}`.trim();
+    const payload = {
+        model: "qwen-image-max",
+        input: {
+            messages: [
+                {
+                    role: "user",
+                    content: [{ text: promptText }]
+                }
+            ]
+        }
+    };
+
+    const curlCmd = `curl --location 'https://dashscope-intl.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation' ` +
+        `--header 'Content-Type: application/json' ` +
+        `--header "Authorization: Bearer ${apiKey}" ` +
+        `--data '${JSON.stringify(payload)}'`;
+
+    const stdout = await new Promise((resolve, reject) => {
+        exec(curlCmd, (err, stdout) => {
+            if (err) reject(err);
+            else resolve(stdout);
+        });
+    });
+
+    let response;
+    try {
+        response = JSON.parse(stdout);
+    } catch (err) {
+        throw new Error(`Invalid JSON response: ${stdout}`);
+    }
+
+    const imageUrl = response?.output?.choices?.[0]?.message?.content?.[0]?.image;
+    if (!imageUrl) {
+        throw new Error(`No image URL in response: ${stdout}`);
+    }
+
+    return imageUrl;
 }
 
-module.exports = {
-    generateAssetFromRequest
-};
+module.exports = { generateAssetFromRequest };
