@@ -9,7 +9,7 @@ const { generateAssetFromRequest } = require('../aiService');
 async function processRequest(requestId) {
     try {
         console.log(`[Worker] Starting job for request ${requestId}`);
-        
+
         // 1. Update status to processing
         await db.update(requests)
             .set({ status: 'processing' })
@@ -17,33 +17,33 @@ async function processRequest(requestId) {
 
         // Fetch the fresh request data
         const [reqData] = await db.select().from(requests).where(eq(requests.id, requestId));
-        
+
         if (!reqData) {
-             console.error(`[Worker] Request ${requestId} not found during processing.`);
-             return;
+            console.error(`[Worker] Request ${requestId} not found during processing.`);
+            return;
         }
 
         // 2. Call AI Service
         try {
             const assetResult = await generateAssetFromRequest(reqData);
-            
+
             // 3. Success: Update to ready
             await db.update(requests)
-                .set({ 
+                .set({
                     status: 'ready',
                     assetUrl: assetResult,
                     updatedAt: new Date()
                 })
                 .where(eq(requests.id, requestId));
-                
+
             console.log(`[Worker] Job ${requestId} completed successfully.`);
-            
+
         } catch (aiError) {
             console.error(`[Worker] AI generation failed for ${requestId}:`, aiError);
-            
+
             // Failure: Update to failed
             await db.update(requests)
-                .set({ 
+                .set({
                     status: 'failed',
                     errorMessage: aiError.message || 'Unknown error during generation',
                     updatedAt: new Date()
@@ -88,6 +88,17 @@ router.post('/', async (req, res) => {
     }
 });
 
+
+router.get('/all', async (req, res) => {
+    try {
+        const requests = await db.select().from(requests);
+        res.json(requests);
+    } catch (err) {
+        console.error('Failed to fetch requests:', err);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+})
+
 // GET /requests/:id
 router.get('/:id', async (req, res) => {
     const id = Number(req.params.id);
@@ -97,7 +108,7 @@ router.get('/:id', async (req, res) => {
 
     try {
         const [request] = await db.select().from(requests).where(eq(requests.id, id));
-        
+
         if (!request) {
             return res.status(404).json({ error: 'Request not found' });
         }
