@@ -68,7 +68,7 @@ async function createTool() {
 
       <form class="space-y-4" @submit.prevent="createTool">
         <div>
-          <label class="block text-sm mb-1">Tool Name</label>
+          <label class="block text-sm mb-2">Tool Name</label>
           <input
             v-model="form.name"
             type="text"
@@ -79,7 +79,7 @@ async function createTool() {
         </div>
 
         <div>
-          <label class="block text-sm mb-1">Tool Type</label>
+          <label class="block text-sm mb-2">Tool Type</label>
           <select
             v-model="form.type"
             class="w-full rounded-md bg-slate-800 border border-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"

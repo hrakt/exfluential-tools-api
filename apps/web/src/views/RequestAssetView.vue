@@ -97,7 +97,7 @@ onUnmounted(() => {
 
 <template>
   <main class="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-4">
-    <div class="w-full max-w-lg p-6 bg-slate-900/80 rounded-xl shadow-lg border border-slate-800">
+    <div class="w-full max-w-lg px-6 pb-6 pt-4 bg-slate-900/80 rounded-xl shadow-lg border border-slate-800">
       
       <div class="mb-6 flex items-center justify-between">
         <h1 class="text-2xl font-semibold">Request Marketing Asset</h1>
@@ -107,22 +107,22 @@ onUnmounted(() => {
       <form v-if="status === 'idle' || status === 'submitting' || status === 'failed'" @submit.prevent="submitRequest" class="space-y-4">
         <div class="grid grid-cols-2 gap-4">
             <div>
-            <label class="block text-sm mb-1 text-slate-400">Doctor Name</label>
+            <label class="block text-sm mb-2 text-slate-400">Doctor Name</label>
             <input v-model="form.doctorName" type="text" required placeholder="Dr. Smith" class="w-full rounded bg-slate-800 border border-slate-700 px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
             </div>
             <div>
-            <label class="block text-sm mb-1 text-slate-400">Practice Type</label>
+            <label class="block text-sm mb-2 text-slate-400">Practice Type</label>
             <input v-model="form.practiceType" type="text" required placeholder="Dental" class="w-full rounded bg-slate-800 border border-slate-700 px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
             </div>
         </div>
 
         <div>
-          <label class="block text-sm mb-1 text-slate-400">Practice Name</label>
+          <label class="block text-sm mb-2 text-slate-400">Practice Name</label>
           <input v-model="form.practiceName" type="text" required placeholder="Bright Smiles" class="w-full rounded bg-slate-800 border border-slate-700 px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
         </div>
 
         <div>
-          <label class="block text-sm mb-1 text-slate-400">Channel</label>
+          <label class="block text-sm mb-2 text-slate-400">Channel</label>
           <select v-model="form.channel" class="w-full rounded bg-slate-800 border border-slate-700 px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500">
             <option value="social">Social Media Post</option>
             <option value="email">Email Campaign</option>
@@ -131,7 +131,7 @@ onUnmounted(() => {
         </div>
 
         <div>
-          <label class="block text-sm mb-1 text-slate-400">Primary Message</label>
+          <label class="block text-sm mb-2 text-slate-400">Primary Message</label>
           <textarea v-model="form.primaryMessage" required rows="3" placeholder="e.g. 50% off teeth whitening this summer..." class="w-full rounded bg-slate-800 border border-slate-700 px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500"></textarea>
         </div>
 
