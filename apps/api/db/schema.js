@@ -10,15 +10,6 @@ const tools = pgTable('tools', {
 });
 
 
-const jobs = pgTable('jobs', {
-    id: serial('id').primaryKey(),
-    toolId: integer('toolId').notNull(),
-    type: text('type').notNull(),
-    status: text('status').notNull().default('queued'),
-    createdAt: timestamp('createdAt', { withTimezone: true }).defaultNow(),
-    updatedAt: timestamp('updatedAt', { withTimezone: true }).defaultNow(),
-});
-
 const requests = pgTable('requests', {
     id: serial('id').primaryKey(),
     doctorName: text('doctor_name').notNull(),
@@ -31,6 +22,15 @@ const requests = pgTable('requests', {
     errorMessage: text('error_message'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
+});
+
+const jobs = pgTable('jobs', {
+    id: serial('id').primaryKey(),
+    requestId: integer('requestId').notNull().references(() => requests.id),
+    type: text('type').notNull(),
+    status: text('status').notNull().default('queued'),
+    createdAt: timestamp('createdAt', { withTimezone: true }).defaultNow(),
+    updatedAt: timestamp('updatedAt', { withTimezone: true }).defaultNow(),
 });
 
 module.exports = { tools, jobs, requests };

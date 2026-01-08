@@ -41,17 +41,6 @@ async function initDb() {
     `);
 
     await pool.query(`
-    CREATE TABLE IF NOT EXISTS jobs (
-      id SERIAL PRIMARY KEY,
-      "toolId" INTEGER NOT NULL,
-      type TEXT NOT NULL,
-      status TEXT NOT NULL DEFAULT 'queued',
-      "createdAt" TIMESTAMPTZ DEFAULT NOW(),
-      "updatedAt" TIMESTAMPTZ DEFAULT NOW()
-    );
-  `);
-
-    await pool.query(`
     CREATE TABLE IF NOT EXISTS requests (
       id SERIAL PRIMARY KEY,
       doctor_name TEXT NOT NULL,
@@ -65,6 +54,35 @@ async function initDb() {
       created_at TIMESTAMPTZ DEFAULT NOW(),
       updated_at TIMESTAMPTZ DEFAULT NOW()
     );
+  `);
+
+    await pool.query(`
+    CREATE TABLE IF NOT EXISTS jobs (
+      id SERIAL PRIMARY KEY,
+      "requestId" INTEGER NOT NULL REFERENCES requests(id) ON DELETE CASCADE,
+      type TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'queued',
+      "createdAt" TIMESTAMPTZ DEFAULT NOW(),
+      "updatedAt" TIMESTAMPTZ DEFAULT NOW()
+    );
+  `);
+
+    await pool.query(`
+    ALTER TABLE jobs
+    ADD COLUMN IF NOT EXISTS "requestId" INTEGER;
+  `);
+
+    await pool.query(`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname = 'jobs_request_id_fkey'
+      ) THEN
+        ALTER TABLE jobs
+        ADD CONSTRAINT jobs_request_id_fkey
+        FOREIGN KEY ("requestId") REFERENCES requests(id) ON DELETE CASCADE;
+      END IF;
+    END $$;
   `);
     console.log('Tables created or already exist.');
   } catch (err) {
