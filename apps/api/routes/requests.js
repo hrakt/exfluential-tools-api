@@ -1,60 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const { db } = require('../db/db');
-const { requests } = require('../db/schema');
-const { eq } = require('drizzle-orm');
+const { requests, jobs } = require('../db/schema');
+const { eq, sql } = require('drizzle-orm');
 const { generateAssetFromRequest } = require('../services/aiService');
+const { startWorkerLoopOnce } = require('../workers/queueWorker');
 
-// Helper for async processing
-async function processRequest(requestId) {
-    try {
-        console.log(`[Worker] Starting job for request ${requestId}`);
-
-        // 1. Update status to processing
-        await db.update(requests)
-            .set({ status: 'processing' })
-            .where(eq(requests.id, requestId));
-
-        // Fetch the fresh request data
-        const [reqData] = await db.select().from(requests).where(eq(requests.id, requestId));
-
-        if (!reqData) {
-            console.error(`[Worker] Request ${requestId} not found during processing.`);
-            return;
-        }
-
-        // 2. Call AI Service
-        try {
-            const assetResult = await generateAssetFromRequest(reqData);
-
-            // 3. Success: Update to ready
-            await db.update(requests)
-                .set({
-                    status: 'ready',
-                    assetUrl: assetResult,
-                    updatedAt: new Date()
-                })
-                .where(eq(requests.id, requestId));
-
-            console.log(`[Worker] Job ${requestId} completed successfully.`);
-
-        } catch (aiError) {
-            console.error(`[Worker] AI generation failed for ${requestId}:`, aiError);
-
-            // Failure: Update to failed
-            await db.update(requests)
-                .set({
-                    status: 'failed',
-                    errorMessage: aiError.message || 'Unknown error during generation',
-                    updatedAt: new Date()
-                })
-                .where(eq(requests.id, requestId));
-        }
-
-    } catch (err) {
-        console.error(`[Worker] System error processing request ${requestId}:`, err);
-    }
-}
 
 // POST /requests
 router.post('/', async (req, res) => {
@@ -76,9 +27,13 @@ router.post('/', async (req, res) => {
             status: 'pending'
         }).returning();
 
-        // Trigger background processing (fire-and-forget)
-        processRequest(newRequest.id);
+        await db.insert(jobs).values({
+            requestId: newRequest.id,
+            type: 'generate-asset',
+            status: 'queued'
+        });
 
+        startWorkerLoopOnce();
         // Return accepted
         res.status(202).json(newRequest);
 
