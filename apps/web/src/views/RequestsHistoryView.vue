@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { RouterLink } from 'vue-router';
 
 interface RequestItem {
@@ -42,8 +42,29 @@ function formatDate(dateStr?: string) {
   return new Date(dateStr).toLocaleString();
 }
 
+let refreshInterval: number | null = null;
+
+function startAutoRefresh() {
+  if (refreshInterval) return;
+  refreshInterval = window.setInterval(() => {
+    fetchRequests();
+  }, 3000); // Refresh every 3 seconds
+}
+
+function stopAutoRefresh() {
+  if (refreshInterval) {
+    clearInterval(refreshInterval);
+    refreshInterval = null;
+  }
+}
+
 onMounted(() => {
   fetchRequests();
+  startAutoRefresh();
+});
+
+onUnmounted(() => {
+  stopAutoRefresh();
 });
 </script>
 

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, onUnmounted } from 'vue';
-import { RouterLink } from 'vue-router';
+import { RouterLink, useRouter } from 'vue-router';
+
+const router = useRouter();
 
 interface RequestForm {
   doctorName: string;
@@ -18,81 +20,48 @@ const form = ref<RequestForm>({
   primaryMessage: '',
 });
 
-const status = ref<'idle' | 'submitting' | 'pending' | 'processing' | 'ready' | 'failed'>('idle');
-const requestId = ref<number | null>(null);
-const assetUrl = ref<string | null>(null);
+const numberOfRequests = ref(1);
+const status = ref<'idle' | 'submitting' | 'success' | 'failed'>('idle');
 const errorMessage = ref<string | null>(null);
 
-let pollInterval: number | null = null;
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
 
 async function submitRequest() {
   status.value = 'submitting';
   errorMessage.value = null;
-  assetUrl.value = null;
 
   try {
-    const res = await fetch(`${API_BASE}/requests`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form.value),
-    });
+    // Submit multiple requests in parallel
+    const promises = Array.from({ length: numberOfRequests.value }, () =>
+      fetch(`${API_BASE}/requests`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form.value),
+      })
+    );
 
-    if (!res.ok) {
-      const data = await res.json();
-      throw new Error(data.error || 'Failed to submit request');
+    const results = await Promise.all(promises);
+    
+    // Check if all succeeded
+    const allSucceeded = results.every(res => res.ok);
+    
+    if (!allSucceeded) {
+      const failedCount = results.filter(res => !res.ok).length;
+      throw new Error(`${failedCount} request(s) failed to submit`);
     }
 
-    const data = await res.json();
-    requestId.value = data.id;
-    status.value = 'pending';
+    status.value = 'success';
     
-    // Start polling
-    startPolling(data.id);
+    // Redirect to history page after 1 second
+    setTimeout(() => {
+      router.push('/history');
+    }, 1000);
 
   } catch (err: any) {
     status.value = 'failed';
     errorMessage.value = err.message;
   }
 }
-
-function startPolling(id: number) {
-  if (pollInterval) clearInterval(pollInterval);
-  
-  pollInterval = window.setInterval(async () => {
-    try {
-      const res = await fetch(`${API_BASE}/requests/${id}`);
-      if (!res.ok) return;
-
-      const data = await res.json();
-      
-      if (data.status === 'ready') {
-        status.value = 'ready';
-        assetUrl.value = data.assetUrl;
-        stopPolling();
-      } else if (data.status === 'failed') {
-        status.value = 'failed';
-        errorMessage.value = data.errorMessage;
-        stopPolling();
-      } else {
-        status.value = data.status;
-      }
-    } catch (e) {
-      console.error('Polling error', e);
-    }
-  }, 2000);
-}
-
-function stopPolling() {
-  if (pollInterval) {
-    clearInterval(pollInterval);
-    pollInterval = null;
-  }
-}
-
-onUnmounted(() => {
-  stopPolling();
-});
 </script>
 
 <template>
@@ -137,36 +106,31 @@ onUnmounted(() => {
           <textarea v-model="form.primaryMessage" required rows="3" placeholder="e.g. 50% off teeth whitening this summer..." class="w-full rounded bg-slate-800 border border-slate-700 px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500"></textarea>
         </div>
 
-        <button type="submit" :disabled="status === 'submitting'" class="w-full mt-4 rounded bg-emerald-600 px-4 py-2 font-medium text-white hover:bg-emerald-500 disabled:opacity-50">
-          {{ status === 'submitting' ? 'Submitting...' : 'Generate Asset' }}
+        <div>
+          <label class="block text-sm mb-2 text-slate-400">Number of Requests</label>
+          <div class="flex items-center gap-3">
+            <input 
+              v-model.number="numberOfRequests" 
+              type="number" 
+              min="1" 
+              max="10" 
+              class="w-24 rounded bg-slate-800 border border-slate-700 px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" 
+            />
+            <span class="text-xs text-slate-500">Create 1-10 identical requests (for testing workers)</span>
+          </div>
+        </div>
+
+        <button type="submit" :disabled="status === 'submitting'" class="w-full mt-4 rounded bg-emerald-600 px-4 py-2 font-medium text-white hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed">
+          {{ status === 'submitting' ? `Submitting ${numberOfRequests} request(s)...` : `Generate ${numberOfRequests} Asset(s)` }}
         </button>
         
         <p v-if="status === 'failed'" class="text-red-400 text-sm mt-2">Error: {{ errorMessage }}</p>
       </form>
 
-      <div v-else-if="status === 'pending' || status === 'processing'" class="text-center py-10">
-        <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-emerald-500 mb-4"></div>
-        <h2 class="text-xl font-medium mb-2">Generating Asset...</h2>
-        <p class="text-slate-400 text-sm">Status: {{ status }}</p>
+      <div v-if="status === 'success'" class="text-center space-y-4">
+        <p class="text-emerald-400 text-lg">✓ Requests submitted successfully!</p>
+        <p class="text-slate-400 text-sm">Redirecting to history...</p>
       </div>
-
-      <div v-else-if="status === 'ready'" class="space-y-4">
-        <div class="bg-emerald-900/30 border border-emerald-500/30 p-4 rounded text-center">
-          <h2 class="text-lg font-semibold text-emerald-400 mb-2">Asset Ready!</h2>
-          
-          <div v-if="assetUrl && (assetUrl.startsWith('http') || assetUrl.startsWith('data:image'))" class="mt-4">
-            <img :src="assetUrl" alt="Generated Asset" class="max-w-full rounded shadow-lg mx-auto" />
-          </div>
-          <div v-else class="mt-4 p-4 bg-slate-800 rounded text-left font-mono text-sm whitespace-pre-wrap">
-            {{ assetUrl }}
-          </div>
-        </div>
-        
-        <button @click="status = 'idle'" class="w-full rounded border border-slate-600 px-4 py-2 text-sm text-slate-300 hover:bg-slate-800">
-          Create Another
-        </button>
-      </div>
-
     </div>
   </main>
 </template>
