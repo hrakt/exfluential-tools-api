@@ -3,8 +3,6 @@ const router = express.Router();
 const { db } = require('../db/db');
 const { requests, jobs } = require('../db/schema');
 const { eq, sql } = require('drizzle-orm');
-const { generateAssetFromRequest } = require('../services/aiService');
-const { startWorkerLoopOnce } = require('../workers/queueWorker');
 
 
 // POST /requests
@@ -33,7 +31,6 @@ router.post('/', async (req, res) => {
             status: 'queued'
         });
 
-        startWorkerLoopOnce();
         // Return accepted
         res.status(202).json(newRequest);
 
