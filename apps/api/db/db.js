@@ -98,6 +98,19 @@ async function initDb() {
       END IF;
     END $$;
   `);
+
+    await pool.query(`
+    DO $$
+    BEGIN
+      IF EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'jobs' AND column_name = 'toolId'
+      ) THEN
+        ALTER TABLE jobs DROP COLUMN "toolId";
+      END IF;
+    END $$;
+  `);
+
     console.log('Tables created or already exist.');
   } catch (err) {
     console.error('Error in initDb:', err);
