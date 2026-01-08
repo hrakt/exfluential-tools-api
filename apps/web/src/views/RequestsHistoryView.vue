@@ -9,7 +9,7 @@ interface RequestItem {
   practiceType: string;
   channel: string;
   primaryMessage: string;
-  status: 'idle' | 'submitting' | 'pending' | 'processing' | 'ready' | 'failed';
+  status: 'idle' | 'submitting' | 'pending' | 'processing' | 'ready' | 'failed' | 'completed';
   assetUrl?: string | null;
   errorMessage?: string | null;
   createdAt?: string;
@@ -126,7 +126,7 @@ onUnmounted(() => {
             <p class="text-sm text-slate-300 line-clamp-2 italic">"{{ req.primaryMessage }}"</p>
           </div>
 
-          <div v-if="req.status === 'ready' && req.assetUrl" class="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between">
+          <div v-if="(req.status === 'completed' || req.status === 'ready') && req.assetUrl" class="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between">
             <span class="text-xs text-slate-500">Asset Ready</span>
              <a :href="req.assetUrl" target="_blank" class="text-sm text-emerald-400 hover:text-emerald-300 font-medium flex items-center gap-1">
                View Asset 
