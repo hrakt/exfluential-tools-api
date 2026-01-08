@@ -31,7 +31,9 @@ const jobs = pgTable('jobs', {
     status: text('status').notNull().default('queued'),
     attempts: integer('attempts').notNull().default(0),
     maxAttempts: integer('max_attempts').notNull().default(3),
-    runAt: timestamp('run_at', { withTimezone: true }),
+    runAt: timestamp('run_at', { withTimezone: true }).notNull().defaultNow(),
+    // When a worker claimed it (debug/visibility)
+    lockedAt: timestamp('locked_at', { withTimezone: true }),
     lastError: text('last_error'),
     createdAt: timestamp('createdAt', { withTimezone: true }).defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true }).defaultNow(),
