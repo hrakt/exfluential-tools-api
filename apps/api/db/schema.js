@@ -29,6 +29,10 @@ const jobs = pgTable('jobs', {
     requestId: integer('requestId').notNull().references(() => requests.id),
     type: text('type').notNull(),
     status: text('status').notNull().default('queued'),
+    attempts: integer('attempts').notNull().default(0),
+    maxAttempts: integer('max_attempts').notNull().default(3),
+    runAt: timestamp('run_at', { withTimezone: true }),
+    lastError: text('last_error'),
     createdAt: timestamp('createdAt', { withTimezone: true }).defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true }).defaultNow(),
 });
