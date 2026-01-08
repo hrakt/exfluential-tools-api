@@ -81,6 +81,10 @@ async function tickWorker() {
                 })
                 .where(eq(requests.id, job.requestId));
 
+            // Use global broadcast instead
+            if (global.broadcastJobComplete) {
+                global.broadcastJobComplete(job.requestId, result.assetUrl);
+            }
             console.log(`[worker] job ${job.id} completed successfully`);
 
         } catch (error) {
