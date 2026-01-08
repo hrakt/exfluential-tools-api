@@ -59,7 +59,7 @@ onMounted(() => {
             <button @click="fetchRequests" class="px-4 py-2 rounded bg-slate-800 border border-slate-700 hover:bg-slate-700 transition text-sm">
                 Refresh
             </button>
-            <RouterLink to="/requests" class="px-4 py-2 rounded bg-emerald-600 hover:bg-emerald-500 font-medium text-white transition text-sm flex items-center gap-2">
+            <RouterLink to="/" class="px-4 py-2 rounded bg-emerald-600 hover:bg-emerald-500 font-medium text-white transition text-sm flex items-center gap-2">
             <span>+ New Request</span>
             </RouterLink>
             <RouterLink to="/" class="px-4 py-2 rounded border border-slate-700 text-slate-300 hover:bg-slate-800 transition text-sm">
