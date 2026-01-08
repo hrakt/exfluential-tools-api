@@ -62,9 +62,23 @@ async function initDb() {
       "requestId" INTEGER NOT NULL REFERENCES requests(id) ON DELETE CASCADE,
       type TEXT NOT NULL,
       status TEXT NOT NULL DEFAULT 'queued',
+      attempts INTEGER NOT NULL DEFAULT 0,
+      max_attempts INTEGER NOT NULL DEFAULT 3,
+      run_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      locked_at TIMESTAMPTZ,
+      last_error TEXT,
       "createdAt" TIMESTAMPTZ DEFAULT NOW(),
       "updatedAt" TIMESTAMPTZ DEFAULT NOW()
     );
+  `);
+
+    await pool.query(`
+    ALTER TABLE jobs
+    ADD COLUMN IF NOT EXISTS attempts INTEGER NOT NULL DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS max_attempts INTEGER NOT NULL DEFAULT 3,
+    ADD COLUMN IF NOT EXISTS run_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    ADD COLUMN IF NOT EXISTS locked_at TIMESTAMPTZ,
+    ADD COLUMN IF NOT EXISTS last_error TEXT;
   `);
 
     await pool.query(`

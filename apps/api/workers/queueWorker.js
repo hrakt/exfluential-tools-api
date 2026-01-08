@@ -22,7 +22,8 @@ async function tickWorker() {
             SELECT id, "requestId", type, status
             FROM jobs
             WHERE status = 'queued'
-            ORDER BY id ASC
+              AND run_at <= NOW()
+            ORDER BY run_at ASC, id ASC
             LIMIT 1
             FOR UPDATE SKIP LOCKED
         `);
