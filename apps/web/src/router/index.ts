@@ -1,21 +1,23 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '@/views/HomeView.vue'
-import RequestAssetView from '@/views/RequestAssetView.vue'
+import { createRouter, createWebHistory } from 'vue-router';
+import RequestAssetView from '../views/RequestAssetView.vue';
+import RequestsHistoryView from '../views/RequestsHistoryView.vue';
+
+const routes = [
+  {
+    path: '/',
+    name: 'RequestAsset',
+    component: RequestAssetView
+  },
+  {
+    path: '/history',
+    name: 'RequestsHistory',
+    component: RequestsHistoryView
+  }
+];
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
-  routes: [
-    {
-      path: '/',
-      name: 'home',
-      component: RequestAssetView,
-    },
-    {
-      path: '/history',
-      name: 'history',
-      component: () => import('../views/RequestsHistoryView.vue'),
-    },
-  ],
-})
+  history: createWebHistory(),
+  routes
+});
 
-export default router
+export default router;
