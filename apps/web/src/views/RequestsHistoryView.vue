@@ -19,6 +19,8 @@ interface RequestItem {
 const requests = ref<RequestItem[]>([]);
 const isLoading = ref(true);
 const error = ref<string | null>(null);
+const ws = ref<WebSocket | null>(null);
+const notification = ref<{ requestId: number; assetUrl: string } | null>(null);
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
 
@@ -52,11 +54,32 @@ function stopAutoRefresh() {
 }
 
 onMounted(() => {
+  const wsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:3000';
+  ws.value = new WebSocket(wsUrl);
+
+  ws.value.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    if (data.type === 'job-completed') {
+      notification.value = data;
+      
+      // Wait 500ms for database to update before refreshing
+      setTimeout(() => {
+        fetchRequests();
+      }, 500);
+      
+      // Auto-hide notification after 5 seconds
+      setTimeout(() => {
+        notification.value = null;
+      }, 5000);
+    }
+  };
+
   fetchRequests();
 });
 
 onUnmounted(() => {
   stopAutoRefresh();
+  if (ws.value) ws.value.close();
 });
 </script>
 
@@ -110,7 +133,7 @@ onUnmounted(() => {
               <span 
                 class="px-2.5 py-1 rounded-full text-xs font-medium border uppercase tracking-wider"
                 :class="{
-                  'bg-emerald-500/10 text-emerald-400 border-emerald-500/20': req.status === 'ready',
+                  'bg-emerald-500/10 text-emerald-400 border-emerald-500/20': req.status === 'ready' || req.status === 'completed',
                   'bg-amber-500/10 text-amber-400 border-amber-500/20': req.status === 'pending' || req.status === 'processing',
                   'bg-red-500/10 text-red-400 border-red-500/20': req.status === 'failed',
                   'bg-slate-800 text-slate-400 border-slate-700': req.status === 'idle' || req.status === 'submitting'
@@ -138,6 +161,12 @@ onUnmounted(() => {
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- Toast notification -->
+    <div v-if="notification" class="fixed top-4 right-4 bg-emerald-500 text-white p-4 rounded-lg shadow-lg">
+      ✓ Asset generated for request {{ notification.requestId }}
+      <a :href="notification.assetUrl" target="_blank" class="underline ml-2">View</a>
     </div>
   </main>
 </template>
