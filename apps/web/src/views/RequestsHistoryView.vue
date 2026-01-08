@@ -44,13 +44,6 @@ function formatDate(dateStr?: string) {
 
 let refreshInterval: number | null = null;
 
-function startAutoRefresh() {
-  if (refreshInterval) return;
-  refreshInterval = window.setInterval(() => {
-    fetchRequests();
-  }, 3000); // Refresh every 3 seconds
-}
-
 function stopAutoRefresh() {
   if (refreshInterval) {
     clearInterval(refreshInterval);
@@ -60,7 +53,6 @@ function stopAutoRefresh() {
 
 onMounted(() => {
   fetchRequests();
-  startAutoRefresh();
 });
 
 onUnmounted(() => {
