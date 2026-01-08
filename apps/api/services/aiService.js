@@ -41,7 +41,7 @@ async function generateAssetFromRequest(request) {
         throw new Error(`No image URL in response: ${JSON.stringify(data)}`);
     }
 
-    return imageUrl;
+    return { assetUrl: imageUrl };
 }
 
 module.exports = { generateAssetFromRequest };
