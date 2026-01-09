@@ -66,3 +66,36 @@ This avoids blocking HTTP requests and simulates real production workflows.
   - Asset URL is saved to the database
   - Server broadcasts `job-completed` message to all connected WebSocket clients
 - Frontend picks up the websocket broadcast and dispalys a toast message, refreshes the page
+
+# Future Improvements
+
+### 1. Multi-Tenant Architecture
+Right now, there's no authentication—anyone can see all requests. I want to add:
+- User accounts with login/signup
+- Each user only sees their own requests and jobs
+- Row-level security in the database so queries automatically filter by account
+- JWT tokens for API authentication
+
+This would make it production-ready for multiple customers.
+
+### 2. Redis Queue System (Bull/BullMQ)
+The current polling worker checks the database every second even when there's nothing to do. That's wasteful. I'd like to switch to Redis-backed queuing where:
+- Jobs are pushed onto a Redis queue
+- Workers are triggered immediately when a job arrives (no polling)
+- Retries and scheduling happen automatically
+- Scaling up is easier—just spin up more workers
+
+### 3. TypeScript Migration
+Converting the Node.js backend to TypeScript would:
+- Catch bugs before they happen (type checking)
+- Make refactoring way safer
+- Eliminate the need for manual validation on every endpoint
+- Give me better IDE autocomplete
+- Make the code self-documenting
+
+### 4. Other Nice-to-Haves
+- Rate limiting so users can't spam requests
+- Pagination on the request history (load 10 at a time instead of all)
+- Better error messages and logging for debugging
+- Email notifications when a job completes
+- Webhooks so external systems can subscribe to job completion events
