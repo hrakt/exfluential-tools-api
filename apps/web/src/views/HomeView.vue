@@ -113,7 +113,7 @@ async function createTool() {
     </div>
     
     <div class="mt-8 text-slate-500 text-xs text-center">
-      <p>Exfluential Tools API Demo</p>
+      <p>Medical Asset Generator API Demo</p>
     </div>
   </main>
 </template>
